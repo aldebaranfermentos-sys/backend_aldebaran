@@ -22,9 +22,6 @@ public class ProveedorEntity {
     @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(length = 100)
-    private String contacto;
-
     @Column(length = 50)
     private String telefono;
 

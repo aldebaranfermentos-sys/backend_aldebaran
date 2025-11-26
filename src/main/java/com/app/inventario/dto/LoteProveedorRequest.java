@@ -10,7 +10,6 @@ public record LoteProveedorRequest(
         @NotBlank String numeroLote,
         LocalDate fechaIngreso,
         LocalDate fechaVencimiento,
-        @Min(0) Integer cantidadInicial,
         @NotNull Long proveedorId,
         @NotNull Long productoId
 ) {}

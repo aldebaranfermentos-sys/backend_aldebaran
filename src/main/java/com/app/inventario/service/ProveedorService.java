@@ -13,12 +13,7 @@ public interface ProveedorService {
 
     ProveedorResponse crear(ProveedorRequest request);
 
-    ProveedorResponse actualizar(Long id, ProveedorRequest request);
+    ProveedorResponse actualizar(Long id, ProveedorRequest request);  // Debe ser Long
 
-    void eliminar(Long id);
-
-    ProveedorResponse actualizar(Integer id, ProveedorRequest request);
-
-    void eliminar(Integer id);
+    void eliminar(Long id);  // Debe ser Long
 }
-

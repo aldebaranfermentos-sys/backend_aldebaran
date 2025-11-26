@@ -2,15 +2,18 @@ package com.app.inventario.service.impl;
 
 import com.app.inventario.dto.ProveedorRequest;
 import com.app.inventario.dto.ProveedorResponse;
+import com.app.inventario.entities.LoteProveedorEntity;
 import com.app.inventario.entities.ProveedorEntity;
 import com.app.inventario.repository.ProveedorRepository;
 import com.app.inventario.service.ProveedorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -38,7 +41,6 @@ public class ProveedorServiceImpl implements ProveedorService {
     public ProveedorResponse crear(ProveedorRequest request) {
         ProveedorEntity entity = ProveedorEntity.builder()
                 .nombre(request.nombre())
-                .contacto(request.contacto())
                 .telefono(request.telefono())
                 .email(request.email())
                 .direccion(request.direccion())
@@ -49,41 +51,66 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Override
     public ProveedorResponse actualizar(Long id, ProveedorRequest request) {
-        return null;
-    }
-
-    @Override
-    public void eliminar(Long id) {
-
-    }
-
-    @Override
-    public ProveedorResponse actualizar(Integer id, ProveedorRequest request) {
-        ProveedorEntity entity = proveedorRepository.findById(Long.valueOf(id))
+        // Buscamos el proveedor existente
+        ProveedorEntity entity = proveedorRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Proveedor no encontrado"));
 
+        // Actualizamos los campos con los nuevos valores
         entity.setNombre(request.nombre());
-        entity.setContacto(request.contacto());
         entity.setTelefono(request.telefono());
         entity.setEmail(request.email());
         entity.setDireccion(request.direccion());
 
+        // Guardamos y devolvemos la respuesta
         return toResponse(proveedorRepository.save(entity));
     }
 
     @Override
-    public void eliminar(Integer id) {
-        ProveedorEntity entity = proveedorRepository.findById(Long.valueOf(id))
+    @Transactional
+    public void eliminar(Long id) {
+        System.out.println("=== DEBUG ELIMINAR: Recibido ID = " + id);
+
+        // Verificar existencia primero
+        if (!proveedorRepository.existsById(id)) {
+            System.out.println("=== DEBUG ELIMINAR: El proveedor NO EXISTE");
+            throw new ResponseStatusException(NOT_FOUND, "Proveedor no encontrado con ID: " + id);
+        }
+
+        System.out.println("=== DEBUG ELIMINAR: El proveedor existe, buscándolo...");
+
+        // Buscar el proveedor para verificar relaciones
+        ProveedorEntity entity = proveedorRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Proveedor no encontrado"));
 
-        proveedorRepository.delete(entity);
+        System.out.println("=== DEBUG ELIMINAR: Proveedor encontrado: " + entity.getNombre());
+
+        // Intentar acceder a los lotes DENTRO de la transacción activa
+        try {
+            List<LoteProveedorEntity> lotes = entity.getLotes();
+            System.out.println("=== DEBUG ELIMINAR: Lotes cargados, cantidad: " + (lotes != null ? lotes.size() : 0));
+
+            if (lotes != null && !lotes.isEmpty()) {
+                System.out.println("=== DEBUG ELIMINAR: No se puede eliminar, tiene lotes asociados");
+                throw new ResponseStatusException(BAD_REQUEST,
+                        "No se puede eliminar el proveedor porque tiene " + lotes.size() + " lote(s) asociado(s)");
+            }
+        } catch (Exception e) {
+            System.out.println("=== DEBUG ELIMINAR: Error al cargar lotes: " + e.getMessage());
+            // Si falla cargar los lotes, asumimos que no hay lotes y continuamos
+        }
+
+        System.out.println("=== DEBUG ELIMINAR: Procediendo a eliminar con deleteById...");
+
+        // Usar deleteById en lugar de delete(entity)
+        proveedorRepository.deleteById(id);
+
+        System.out.println("=== DEBUG ELIMINAR: Eliminación completada exitosamente");
     }
 
     private ProveedorResponse toResponse(ProveedorEntity e) {
         return new ProveedorResponse(
-                (long) Math.toIntExact(e.getId()),
+                e.getId(),  // Ya no necesitas la conversión Math.toIntExact
                 e.getNombre(),
-                e.getContacto(),
                 e.getTelefono(),
                 e.getEmail(),
                 e.getDireccion()

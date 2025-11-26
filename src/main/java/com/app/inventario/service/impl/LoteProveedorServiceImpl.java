@@ -68,7 +68,6 @@ public class LoteProveedorServiceImpl implements LoteProveedorService {
                 .numeroLote(request.numeroLote())
                 .fechaIngreso(request.fechaIngreso())
                 .fechaVencimiento(request.fechaVencimiento())
-                .cantidadInicial(request.cantidadInicial())
                 .proveedor(proveedor)
                 .producto(producto)
                 .build();
@@ -91,7 +90,6 @@ public class LoteProveedorServiceImpl implements LoteProveedorService {
         entity.setNumeroLote(request.numeroLote());
         entity.setFechaIngreso(request.fechaIngreso());
         entity.setFechaVencimiento(request.fechaVencimiento());
-        entity.setCantidadInicial(request.cantidadInicial());
         entity.setProveedor(proveedor);
         entity.setProducto(producto);
 
@@ -115,7 +113,6 @@ public class LoteProveedorServiceImpl implements LoteProveedorService {
                 e.getNumeroLote(),
                 e.getFechaIngreso(),
                 e.getFechaVencimiento(),
-                e.getCantidadInicial(),
                 e.getProveedor() != null ? e.getProveedor().getId() : null,
                 e.getProveedor() != null ? e.getProveedor().getNombre() : null,   // ajusta getNombre() si tu campo se llama distinto
                 e.getProducto() != null ? e.getProducto().getId() : null,

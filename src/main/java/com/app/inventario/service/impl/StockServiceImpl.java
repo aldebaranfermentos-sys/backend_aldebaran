@@ -26,9 +26,6 @@ public class StockServiceImpl implements StockService {
     private final MovimientoStockRepository movimientoStockRepository;
     private final ProductoRepository productoRepository;
     private final LoteProveedorRepository loteProveedorRepository;
-    private final ProveedorRepository proveedorRepository;
-    private final CategoriaRepository categoriaRepository;
-    private final UnidadMedidaRepository unidadMedidaRepository;
 
     @Override
     public List<StockResponse> listar() {
@@ -57,28 +54,21 @@ public class StockServiceImpl implements StockService {
         ProductoEntity insumo = productoRepository.findById(request.insumoId())
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Insumo no encontrado"));
 
-        // ✅ CAMBIO: Ahora accedemos a las relaciones directamente
-        CategoriaEntity categoria = insumo.getCategoria();
-        if (categoria == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Categoría no encontrada para el insumo");
+        if (insumo.getCategoria() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "El insumo debe tener una categoría asignada");
         }
 
-        UnidadMedidaEntity unidad = insumo.getUnidadMedida();
-        if (unidad == null) {
-            throw new ResponseStatusException(NOT_FOUND, "Unidad de medida no encontrada para el insumo");
+        if (insumo.getUnidadMedida() == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "El insumo debe tener una unidad de medida asignada");
         }
 
         StockEntity entity = stockRepository.findByInsumo_Id(request.insumoId())
                 .orElseGet(() -> {
                     StockEntity nuevo = new StockEntity();
                     nuevo.setInsumo(insumo);
-                    nuevo.setCategoria(categoria);
-                    nuevo.setUnidadMedida(unidad);
                     return nuevo;
                 });
 
-        entity.setCategoria(categoria);
-        entity.setUnidadMedida(unidad);
         entity.setCantidadActual(Math.toIntExact(request.cantidadActual()));
         entity.setUbicacion(request.ubicacion());
         entity.setFechaActualizacion(LocalDate.now());
@@ -171,10 +161,10 @@ public class StockServiceImpl implements StockService {
                 e.getId(),
                 e.getInsumo() != null ? e.getInsumo().getId() : null,
                 e.getInsumo() != null ? e.getInsumo().getNombre() : null,
-                e.getCategoria() != null ? e.getCategoria().getId() : null,
-                e.getCategoria() != null ? e.getCategoria().getNombre() : null,
-                e.getUnidadMedida() != null ? e.getUnidadMedida().getId() : null,
-                e.getUnidadMedida() != null ? e.getUnidadMedida().getNombre() : null,
+                e.getInsumo() != null && e.getInsumo().getCategoria() != null ? e.getInsumo().getCategoria().getId() : null,
+                e.getInsumo() != null && e.getInsumo().getCategoria() != null ? e.getInsumo().getCategoria().getNombre() : null,
+                e.getInsumo() != null && e.getInsumo().getUnidadMedida() != null ? e.getInsumo().getUnidadMedida().getId() : null,
+                e.getInsumo() != null && e.getInsumo().getUnidadMedida() != null ? e.getInsumo().getUnidadMedida().getNombre() : null,
                 e.getCantidadActual(),
                 e.getUbicacion(),
                 e.getLoteProveedor() != null ? e.getLoteProveedor().getId() : null,
@@ -186,7 +176,6 @@ public class StockServiceImpl implements StockService {
                 e.getInsumo() != null ? e.getInsumo().getStockMinimo() : null
         );
     }
-
 
     private MovimientoStockResponse toMovimientoResponse(MovimientoStockEntity m) {
         return new MovimientoStockResponse(

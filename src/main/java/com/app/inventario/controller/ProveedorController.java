@@ -4,6 +4,8 @@ import com.app.inventario.dto.ProveedorRequest;
 import com.app.inventario.dto.ProveedorResponse;
 import com.app.inventario.service.ProveedorService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,25 +26,29 @@ public class ProveedorController {
     }
 
     @GetMapping("/{id}")
-    public ProveedorResponse obtenerPorId(@PathVariable Long id) {
-        return service.obtenerPorId(id);
+    public ResponseEntity<ProveedorResponse> obtenerPorId(@PathVariable Long id) {
+        ProveedorResponse proveedor = service.obtenerPorId(id);
+        return ResponseEntity.ok(proveedor);
     }
 
     @PostMapping
-    public ProveedorResponse crear(@Valid @RequestBody ProveedorRequest request) {
-        return service.crear(request);
+    public ResponseEntity<ProveedorResponse> crear(@Valid @RequestBody ProveedorRequest request) {
+        ProveedorResponse creado = service.crear(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
-    public ProveedorResponse actualizar(
-            @PathVariable Integer id,
+    public ResponseEntity<ProveedorResponse> actualizar(
+            @PathVariable Long id,
             @Valid @RequestBody ProveedorRequest request
     ) {
-        return service.actualizar(Long.valueOf(id), request);
+        ProveedorResponse actualizado = service.actualizar(id, request);
+        return ResponseEntity.ok(actualizado);
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Integer id) {
-        service.eliminar(Long.valueOf(id));
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

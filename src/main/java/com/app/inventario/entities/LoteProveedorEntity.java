@@ -27,8 +27,6 @@ public class LoteProveedorEntity {
     @Column(name = "fecha_vencimiento")
     private LocalDate fechaVencimiento;
 
-    @Column(name = "cantidad_inicial")
-    private Integer cantidadInicial;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proveedor_id", nullable = false)

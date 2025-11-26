@@ -7,7 +7,6 @@ public record LoteProveedorResponse(
         String numeroLote,
         LocalDate fechaIngreso,
         LocalDate fechaVencimiento,
-        Integer cantidadInicial,
         Long proveedorId,
         String proveedorNombre,
         Long productoId,

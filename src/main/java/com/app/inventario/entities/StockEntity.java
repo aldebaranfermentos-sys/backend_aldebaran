@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "\"Stock\"") // La tabla en la BD se llama "Stock" (con mayúscula y comillas)
+@Table(name = "\"Stock\"")
 public class StockEntity {
 
     @Id
@@ -28,27 +28,11 @@ public class StockEntity {
     @Column(name = "\"Ubicacion\"", length = 45)
     private String ubicacion;
 
-    // =============== RELACIONES =================
-
-    // FK: "Insumos_idInsumos" → tabla "Insumos"
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "\"Insumos_idInsumos\"", nullable = false)
     private ProductoEntity insumo;
 
-    // FK: "Insumos_Categoria_idCategoria" → tabla "Categoria"
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "\"Insumos_Categoria_idCategoria\"")
-    private CategoriaEntity categoria;
-
-    // FK: "Insumos_Unidad_medida_idUnidad_medida" → tabla "Unidad_medida"
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "\"Insumos_Unidad_medida_idUnidad_medida\"")
-    private UnidadMedidaEntity unidadMedida;
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lote_proveedor_id")
     private LoteProveedorEntity loteProveedor;
-
-
 }
