@@ -141,14 +141,15 @@ public class ProduccionServiceImpl implements ProduccionService {
         ProduccionEntity entity = produccionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Producción no encontrada"));
 
-        if (!"Pendiente".equals(entity.getEstado())) {
+        // ✅ SOLUCIÓN 2: Solo impide eliminar si ya está completada (stock descontado)
+        if ("Completada".equals(entity.getEstado())) {
             throw new ResponseStatusException(BAD_REQUEST,
-                    "Solo se pueden eliminar producciones en estado Pendiente");
+                    "No se pueden eliminar producciones completadas porque ya descargaron el stock");
         }
 
+        // ✅ Permite eliminar: Pendiente, En Proceso, o estados inválidos (como "sesasa")
         produccionRepository.deleteById(id);
     }
-
     @Override
     public ProduccionResponse completarProduccion(Long id) {
         ProduccionEntity entity = produccionRepository.findById(id)
