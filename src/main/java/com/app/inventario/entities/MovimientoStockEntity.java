@@ -17,13 +17,13 @@ public class MovimientoStockEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fechamovimiento")
+    @Column(name = "fechamovimiento")  // ✅ Todo en minúsculas, sin comillas
     private LocalDateTime fechaMovimiento;
 
-    @Column(name = "stockantes")
+    @Column(name = "stockantes")  // ✅ Todo en minúsculas, sin comillas
     private Integer stockAntes;
 
-    @Column(name = "stockdespues")
+    @Column(name = "stockdespues")  // ✅ Todo en minúsculas, sin comillas
     private Integer stockDespues;
 
     @Column(name = "cantidad")
@@ -33,7 +33,7 @@ public class MovimientoStockEntity {
     private String motivo;
 
     @Column(name = "tipo")
-    @Enumerated(EnumType.STRING) // ⬅️ AGREGAR ESTA ANOTACIÓN
+    @Enumerated(EnumType.STRING)
     private TipoMovimientoStock tipo;
 
     @ManyToOne(fetch = FetchType.LAZY)

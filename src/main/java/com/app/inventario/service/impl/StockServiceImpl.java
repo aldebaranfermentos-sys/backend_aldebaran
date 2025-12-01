@@ -172,17 +172,18 @@ public class StockServiceImpl implements StockService {
         StockEntity entity = stockRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Stock no encontrado"));
 
-        // Verificar si tiene movimientos asociados
+        // Eliminar todos los movimientos asociados primero
         List<MovimientoStockEntity> movimientos = movimientoStockRepository
                 .findByStockOrderByFechaMovimientoDesc(entity);
 
         if (!movimientos.isEmpty()) {
-            throw new ResponseStatusException(BAD_REQUEST,
-                    "No se puede eliminar el stock porque tiene movimientos registrados");
+            movimientoStockRepository.deleteAll(movimientos);
         }
 
+        // Ahora eliminar el stock
         stockRepository.delete(entity);
     }
+
 
 
     private void guardarMovimiento(
