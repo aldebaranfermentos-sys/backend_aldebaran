@@ -17,13 +17,13 @@ public class MovimientoStockEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fechamovimiento")  // ✅ Todo en minúsculas, sin comillas
+    @Column(name = "fechamovimiento")  // ✅ Sin comillas, minúsculas
     private LocalDateTime fechaMovimiento;
 
-    @Column(name = "stockantes")  // ✅ Todo en minúsculas, sin comillas
+    @Column(name = "stockantes")  // ✅ Sin comillas, minúsculas
     private Integer stockAntes;
 
-    @Column(name = "stockdespues")  // ✅ Todo en minúsculas, sin comillas
+    @Column(name = "stockdespues")  // ✅ Sin comillas, minúsculas
     private Integer stockDespues;
 
     @Column(name = "cantidad")
