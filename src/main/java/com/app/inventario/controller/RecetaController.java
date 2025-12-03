@@ -1,5 +1,7 @@
 package com.app.inventario.controller;
 
+import com.app.inventario.dto.DetalleProduccionRequest;
+import com.app.inventario.dto.DetalleRecetaRequest;
 import com.app.inventario.dto.RecetaRequest;
 import com.app.inventario.dto.RecetaResponse;
 import com.app.inventario.service.RecetaService;
@@ -83,5 +85,30 @@ public class RecetaController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         recetaService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ============================
+    // INGREDIENTES (DETALLES)
+    // ============================
+    @PostMapping("/{id}/ingredientes")
+    public RecetaResponse agregarIngrediente(
+            @PathVariable Long id,
+            @Valid @RequestBody DetalleRecetaRequest detalle
+    ) {
+        return recetaService.agregarIngrediente(id, detalle);
+    }
+
+    @DeleteMapping("/ingredientes/{ingredienteId}")
+    public ResponseEntity<Void> eliminarIngrediente(@PathVariable Long ingredienteId) {
+        recetaService.eliminarIngrediente(ingredienteId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ============================
+    // DETALLES PARA PRODUCCIÓN
+    // ============================
+    @GetMapping("/{id}/detalles-produccion")
+    public List<DetalleProduccionRequest> obtenerDetallesDeReceta(@PathVariable Long id) {
+        return recetaService.obtenerDetallesDeReceta(id);
     }
 }
