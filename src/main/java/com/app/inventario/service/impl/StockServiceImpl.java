@@ -39,11 +39,13 @@ public class StockServiceImpl implements StockService {
     @Override
     @Transactional(readOnly = true)
     public List<StockResponse> listar() {
-        return stockRepository.findAll()
+        // Solo stocks con cantidadActual > 0
+        return stockRepository.findByCantidadActualGreaterThan(0)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
+
 
     @Override
     @Transactional(readOnly = true)

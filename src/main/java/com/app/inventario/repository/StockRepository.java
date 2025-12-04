@@ -26,4 +26,8 @@ public interface StockRepository extends JpaRepository<StockEntity, Integer>,
             "WHERE s.cantidadActual <= s.insumo.stockMinimo " +
             "ORDER BY s.cantidadActual ASC")
     List<StockEntity> findProductosConStockBajo();
+
+    // Nuevo: listar solo stocks con cantidad > 0
+    List<StockEntity> findByCantidadActualGreaterThan(Integer cantidad);
+
 }
