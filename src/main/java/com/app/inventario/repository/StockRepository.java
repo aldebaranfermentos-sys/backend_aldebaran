@@ -15,6 +15,8 @@ public interface StockRepository extends JpaRepository<StockEntity, Integer>,
 
     Optional<StockEntity> findByInsumo_Id(Long insumoId);
 
+    Optional<StockEntity> findByInsumo_IdAndLoteProveedor_Id(Long insumoId, Long loteProveedorId);
+
     @Query("SELECT s FROM StockEntity s " +
             "WHERE s.cantidadActual <= s.insumo.stockMinimo " +
             "ORDER BY s.cantidadActual ASC")

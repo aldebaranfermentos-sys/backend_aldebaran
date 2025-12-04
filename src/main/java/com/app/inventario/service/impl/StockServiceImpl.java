@@ -102,28 +102,35 @@ public class StockServiceImpl implements StockService {
             throw new ResponseStatusException(BAD_REQUEST, "El insumo debe tener una unidad de medida asignada");
         }
 
-        StockEntity entity = stockRepository.findByInsumo_Id(request.insumoId())
-                .orElseGet(() -> {
-                    StockEntity nuevo = new StockEntity();
-                    nuevo.setInsumo(insumo);
-                    return nuevo;
-                });
+        LoteProveedorEntity lote = null;
+        if (request.loteProveedorId() != null) {
+            lote = loteProveedorRepository.findById(request.loteProveedorId())
+                    .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Lote no encontrado"));
+        }
+
+        // 🔍 Buscar stock por INSUMO + LOTE, no solo por insumo
+        StockEntity entity = null;
+
+        if (lote != null) {
+            entity = stockRepository.findByInsumo_IdAndLoteProveedor_Id(request.insumoId(), request.loteProveedorId())
+                    .orElse(null);
+        }
+
+        // SI NO EXISTE → crear nuevo stock
+        if (entity == null) {
+            entity = new StockEntity();
+            entity.setInsumo(insumo);
+            entity.setLoteProveedor(lote);
+        }
 
         entity.setCantidadActual(Math.toIntExact(request.cantidadActual()));
         entity.setUbicacion(request.ubicacion());
         entity.setFechaActualizacion(LocalDate.now());
 
-        if (request.loteProveedorId() != null) {
-            LoteProveedorEntity lote = loteProveedorRepository.findById(request.loteProveedorId())
-                    .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Lote no encontrado"));
-            entity.setLoteProveedor(lote);
-        } else {
-            entity.setLoteProveedor(null);
-        }
-
         StockEntity guardado = stockRepository.save(entity);
         return toResponse(guardado);
     }
+
 
     @Override
     public StockResponse actualizar(Integer id, StockRequest request) {
