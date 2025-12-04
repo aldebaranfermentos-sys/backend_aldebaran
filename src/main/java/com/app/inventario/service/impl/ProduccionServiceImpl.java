@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,8 @@ public class ProduccionServiceImpl implements ProduccionService {
     private final StockRepository stockRepository;
     private final UsuarioRepository userRepository;
     private final RecetaRepository recetaRepository;
+    private final MovimientoStockRepository movimientoStockRepository;
+
 
     // ============================================================
     // LISTAR
@@ -177,6 +180,7 @@ public class ProduccionServiceImpl implements ProduccionService {
                     "Solo se pueden completar producciones en estado Pendiente o En Proceso");
         }
 
+        // Convertir detalles para validación
         List<DetalleProduccionRequest> detalles = entity.getDetalles().stream()
                 .map(d -> new DetalleProduccionRequest(
                         d.getProducto().getId(),
@@ -184,23 +188,60 @@ public class ProduccionServiceImpl implements ProduccionService {
                         d.getObservacion()
                 ))
                 .toList();
+
         validarStockDisponible(detalles);
 
+        // 🚀 FEFO: Consumir stock por lote (el más antiguo primero)
         for (DetalleProduccionEntity detalle : entity.getDetalles()) {
-            StockEntity stock = stockRepository.findByInsumo_Id(detalle.getProducto().getId())
-                    .orElseThrow(() -> new ResponseStatusException(NOT_FOUND,
-                            "No existe stock para el producto: " + detalle.getProducto().getNombre()));
 
-            int nuevaCantidad = stock.getCantidadActual() - detalle.getCantidadUtilizada();
-            stock.setCantidadActual(nuevaCantidad);
-            stock.setFechaActualizacion(LocalDate.now());
-            stockRepository.save(stock);
+            List<StockEntity> lotes = stockRepository
+                    .findByInsumo_IdOrderByLoteProveedor_FechaVencimientoAsc(detalle.getProducto().getId());
+
+            int restante = detalle.getCantidadUtilizada();
+
+            for (StockEntity lote : lotes) {
+
+                if (restante <= 0) break;
+
+                int disponible = lote.getCantidadActual();
+                int aDescontar = Math.min(disponible, restante);
+
+                int antes = lote.getCantidadActual();
+                int despues = antes - aDescontar;
+
+                lote.setCantidadActual(despues);
+                lote.setFechaActualizacion(LocalDate.now());
+                stockRepository.save(lote);
+
+                // Registrar movimiento por lote
+                MovimientoStockEntity mov = MovimientoStockEntity.builder()
+                        .stock(lote)
+                        .tipo(TipoMovimientoStock.SALIDA)
+                        .cantidad(aDescontar)
+                        .stockAntes(antes)
+                        .stockDespues(despues)
+                        .motivo("Salida por producción (lote " +
+                                (lote.getLoteProveedor() != null ? lote.getLoteProveedor().getNumeroLote() : "N/A") +
+                                ")")
+                        .fechaMovimiento(LocalDateTime.now())
+                        .build();
+
+                movimientoStockRepository.save(mov);
+
+                restante -= aDescontar;
+            }
+
+            if (restante > 0) {
+                throw new ResponseStatusException(BAD_REQUEST,
+                        "Stock insuficiente por lotes para el producto: " + detalle.getProducto().getNombre());
+            }
         }
 
         entity.setEstado("Completada");
         ProduccionEntity guardada = produccionRepository.save(entity);
         return toResponse(guardada);
     }
+
 
     // ============================================================
     // FILTRAR
@@ -313,27 +354,34 @@ public class ProduccionServiceImpl implements ProduccionService {
     // VALIDAR STOCK
     // ============================================================
     private void validarStockDisponible(List<DetalleProduccionRequest> detalles) {
+
         StringBuilder errores = new StringBuilder();
 
         for (DetalleProduccionRequest detalle : detalles) {
+
             ProductoEntity producto = productoRepository.findById(detalle.productoId())
                     .orElseThrow(() -> new ResponseStatusException(NOT_FOUND,
                             "Producto no encontrado: " + detalle.productoId()));
 
-            StockEntity stock = stockRepository.findByInsumo_Id(detalle.productoId())
-                    .orElse(null);
+            List<StockEntity> lotes = stockRepository
+                    .findByInsumo_IdOrderByLoteProveedor_FechaVencimientoAsc(detalle.productoId());
 
-            if (stock == null) {
-                errores.append(String.format("- El producto '%s' no tiene registro de stock.%n",
-                        producto.getNombre()));
+            if (lotes.isEmpty()) {
+                errores.append("- El producto '")
+                        .append(producto.getNombre())
+                        .append("' no tiene stock registrado.\n");
                 continue;
             }
 
-            if (stock.getCantidadActual() < detalle.cantidadUtilizada()) {
+            int totalDisponible = lotes.stream()
+                    .mapToInt(StockEntity::getCantidadActual)
+                    .sum();
+
+            if (totalDisponible < detalle.cantidadUtilizada()) {
                 errores.append(String.format(
-                        "- El producto '%s' no tiene suficiente stock. Disponible: %d, Requerido: %d.%n",
+                        "- El producto '%s' no tiene suficiente stock. Disponible total: %d, Requerido: %d.\n",
                         producto.getNombre(),
-                        stock.getCantidadActual(),
+                        totalDisponible,
                         detalle.cantidadUtilizada()
                 ));
             }
@@ -341,9 +389,10 @@ public class ProduccionServiceImpl implements ProduccionService {
 
         if (errores.length() > 0) {
             throw new ResponseStatusException(BAD_REQUEST,
-                    "No hay suficiente stock para crear la producción:%n" + errores.toString());
+                    "No hay suficiente stock:\n" + errores);
         }
     }
+
 
     // ============================================================
     // MAPEADOR

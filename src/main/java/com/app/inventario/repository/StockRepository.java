@@ -13,9 +13,14 @@ import java.util.Optional;
 public interface StockRepository extends JpaRepository<StockEntity, Integer>,
         JpaSpecificationExecutor<StockEntity> {
 
+    // ⚠️ SOLO usar si NO existen múltiples lotes
     Optional<StockEntity> findByInsumo_Id(Long insumoId);
 
+    // 🔥 Nuevo: para buscar lote específico
     Optional<StockEntity> findByInsumo_IdAndLoteProveedor_Id(Long insumoId, Long loteProveedorId);
+
+    // 🔥 Nuevo: FEFO (ordenar por fecha de vencimiento ascendente)
+    List<StockEntity> findByInsumo_IdOrderByLoteProveedor_FechaVencimientoAsc(Long insumoId);
 
     @Query("SELECT s FROM StockEntity s " +
             "WHERE s.cantidadActual <= s.insumo.stockMinimo " +

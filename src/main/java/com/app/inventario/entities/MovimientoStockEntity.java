@@ -17,14 +17,16 @@ public class MovimientoStockEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "\"fechaMovimiento\"")  // ✅ CON comillas escapadas y camelCase
+    @Column(name = "fechamovimiento", nullable = false)
     private LocalDateTime fechaMovimiento;
 
-    @Column(name = "\"stockAntes\"")  // ✅ CON comillas escapadas y camelCase
+
+    @Column(name = "stockantes", nullable = false)
     private Integer stockAntes;
 
-    @Column(name = "\"stockDespues\"")  // ✅ CON comillas escapadas y camelCase
+    @Column(name = "stockdespues", nullable = false)
     private Integer stockDespues;
+
 
     @Column(name = "cantidad")
     private Integer cantidad;
@@ -39,4 +41,11 @@ public class MovimientoStockEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id")
     private StockEntity stock;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaMovimiento == null) {
+            this.fechaMovimiento = LocalDateTime.now();
+        }
+    }
 }
