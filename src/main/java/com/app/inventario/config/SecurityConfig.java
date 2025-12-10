@@ -74,7 +74,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedOrigin("https://backend-aldebaran.onrender.com"); // 👈 Permite cualquier dominio (para desarrollo)
+        config.addAllowedOrigin("https://backend-aldebaran.onrender.com");
+        config.addAllowedOrigin("https://aldebaran-inventario-omega.vercel.app"); // 👈 Agregar esta línea
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
