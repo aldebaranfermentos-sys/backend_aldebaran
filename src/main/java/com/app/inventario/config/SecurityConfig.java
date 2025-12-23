@@ -75,7 +75,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("https://backend-aldebaran.onrender.com");
-        config.addAllowedOrigin("https://aldebaran-inventario-omega.vercel.app"); // 👈 Agregar esta línea
+        config.addAllowedOrigin("https://aldebaraninventario.onrender.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
