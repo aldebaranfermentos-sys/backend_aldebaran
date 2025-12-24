@@ -76,6 +76,7 @@ public class SecurityConfig {
         config.addAllowedOrigin("http://localhost:5173");
         config.addAllowedOrigin("https://backend-aldebaran.onrender.com");
         config.addAllowedOrigin("https://aldebaraninventario.onrender.com");
+        config.addAllowedOrigin("https://inventario.aldebaranboyaca.com");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
